@@ -31,27 +31,105 @@ const App= () => {
     }
   };
 
-  const hasExceededNestingLevel = (
-    group: RuleGroupType | RuleType<string, string, any, string>,
-    maxLevel: number,
-    currentLevel = 0
-  ): boolean => {
-    if (currentLevel > maxLevel) {
-      return true;
-    }
-    if ('rules' in group && group.rules) {
-      for (const rule of group.rules) {
-        if (hasExceededNestingLevel(rule, maxLevel, currentLevel + 1)) {
-          return true;
-        }
+  // const hasExceededNestingLevel = (
+  //   group: RuleGroupType | RuleType<string, string, any, string>,
+  //   maxLevel: number,
+  //   currentLevel = 0
+  // ): boolean => {
+  //   if (currentLevel > maxLevel) {
+  //     return true;
+  //   }
+  //   if ('rules' in group && group.rules) {
+  //     for (const rule of group.rules) {
+  //       if (hasExceededNestingLevel(rule, maxLevel, currentLevel + 1)) {
+  //         return true;
+  //       }
+  //     }
+  //   }
+  //   return false
+  // };
+
+//  const hasExceededNestingLevel = (
+//     group: RuleGroupType | RuleType<string, string, any, string>,
+//     maxLevel: number,
+//     currentLevel = 0
+//   ): boolean => {
+//     if (currentLevel > maxLevel) {
+//       return true;
+//     }
+//     if ('combinator' in group && group.rules) {
+//       for (const rule of group.rules) {
+//         if (hasExceededNestingLevel(rule, maxLevel, currentLevel + 1)) {
+//           return true;
+//         }
+//       }
+//     }
+//     return false;
+//   };
+
+const hasExceededNestingLevel = (
+  group: RuleGroupType,
+  maxLevel: number,
+  currentLevel = 0
+): boolean => {
+  if (currentLevel > maxLevel) {
+    return true;
+  }
+  if (group.rules) {
+    for (const rule of group.rules) {
+      if ('combinator' in rule && rule.rules && hasExceededNestingLevel(rule, maxLevel, currentLevel + 1)) {
+        return true;
       }
     }
-    return false;
-  };
+  }
+  return false;
+};
+
+const customControlElements = {
+  addGroupAction: (props: any) => {
+    const { onClick, rules, level } = props;
+    const isMaxLevel = level >= MAX_NESTING_LEVEL;
+    const disabled = isMaxLevel || hasExceededNestingLevel({
+      rules,
+      combinator: ''
+    }, MAX_NESTING_LEVEL, level);
+    return (
+      <button onClick={onClick} disabled={disabled}>
+        Add Group
+      </button>
+    );
+  }
+};
+
+
+// const customControlElements = {
+//   addGroupAction: (props: any) => {
+//     const { onClick } = props;
+//     const isNestedGroup = props.parentId !== null;
+//     const isMaxLevel = hasExceededNestingLevel(query, MAX_NESTING_LEVEL);
+//     const disabled = isNestedGroup || isMaxLevel;
+//     return (
+//       <button onClick={onClick} disabled={disabled}>
+//         Add Group
+//       </button>
+//     );
+//   },
+//   addRuleAction: (props: any) => {
+//     const { onClick } = props;
+//     const isNestedGroup = props.parentId !== null;
+//     const disabled = isNestedGroup;
+//     return (
+//       <button onClick={onClick} disabled={disabled}>
+//         Add Rule
+//       </button>
+//     );
+//   }
+// };
 
   return (
     <div className="App">
       <QueryBuilder 
+      // controlElements={customControlElements}
       controlClassnames={{ addRule: 'bold' }}
       fields={fields} 
       query={query} 
